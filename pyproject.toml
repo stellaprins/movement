@@ -34,6 +34,8 @@ classifiers = [
     "License :: OSI Approved :: BSD License",
 ]
 
+entry-points."napari.manifest".movement = "movement:napari.yaml"
+
 [project.urls]
 homepage = "https://github.com/neuroinformatics-unit/movement"
 bug_tracker = "https://github.com/neuroinformatics-unit/movement/issues"

@@ -1,0 +1,35 @@
+name: movement
+display_name: movement
+contributions:
+  commands:
+    - id: movement.get_reader
+      python_name: movement.napari._reader:napari_get_reader
+      title: Open data with movement
+    - id: movement.make_sample_data
+      python_name: movement.napari._sample_data:make_sample_data
+      title: Load sample data from movement
+    - id: movement.make_qwidget
+      python_name: movement.napari._widget:ExampleQWidget
+      title: Make example QWidget
+    - id: movement.make_magic_widget
+      python_name: movement.napari._widget:example_magic_widget
+      title: Make example magic widget
+    - id: movement.make_func_widget
+      python_name: movement.napari._widget:example_function_widget
+      title: Make example function widget
+  readers:
+    - command: movement.get_reader
+      accepts_directories: false
+      filename_patterns: ['*.npy']
+  sample_data:
+    - command: movement.make_sample_data
+      display_name: movement
+      key: unique_id.1
+  widgets:
+    - command: movement.make_qwidget
+      display_name: Example QWidget
+    - command: movement.make_magic_widget
+      display_name: Example Magic Widget
+    - command: movement.make_func_widget
+      autogenerate: true
+      display_name: Example Function Widget
