@@ -20,7 +20,11 @@ contributions:
   readers:
     - command: movement.get_reader
       accepts_directories: false
-      filename_patterns: ['*.npy']
+      filename_patterns:
+      - "*.h5"
+      - "*.hdf5"
+      - "*.slp"
+      - "*.csv"
   sample_data:
     - command: movement.make_sample_data
       display_name: movement
