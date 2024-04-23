@@ -1,9 +1,11 @@
-(target-datasets)=
-# movement datasets
+(target-dataset)=
+# movement dataset
 
-Data in `movement` are stored in *movement datasets*, which are
-[`xarray.Dataset`](xarray:generated/xarray.Dataset.html) objects.
-Each dataset contains multiple data variables, dimensions, and attributes.
+`movement` datasets are
+[`xarray.Dataset`](xarray:generated/xarray.Dataset.html) objects, with some
+added functionality for storing pose tracks and their derived quantities.
+Each dataset contains multiple data variables, dimensions, coordinates and
+attributes.
 
 ![](../_static/dataset_structure.png)
 

@@ -7,5 +7,5 @@ Conceptual guides, explanations and terminology.
 :maxdepth: 2
 :hidden:
 
-datasets
+movement_dataset
 ```

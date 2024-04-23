@@ -1,33 +1,35 @@
-"""Filtering and interpolation
-============================
+"""Filter and interpolate pose tracks
+=====================================
 
 Filter out points with low confidence scores and interpolate over
 missing values.
 """
 
 # %%
-# Imports
-# -------
-from movement import sample_data
-from movement.filtering import filter_by_confidence, interpolate_over_time
+# Load a dataset
+# --------------------------
+# Here we load an example dataset that comes with the ``movement``.
+# If you wish to load your own data from a file, refer to the
+# :ref:`sphx_glr_examples_load_pose_tracks.py` guide.
 
-# %%
-# Load a sample dataset
-# ---------------------
+from movement import sample_data
 
 ds = sample_data.fetch_sample_data("DLC_single-wasp.predictions.h5")
-print(ds)
 
 # %%
-# We can see that this dataset contains the 2D pose tracks and confidence
-# scores for a single wasp, generated with DeepLabCut. There are 2 keypoints:
-# "head" and "stinger".
+# We can see the loaded dataset ``ds`` was acquired at 40 fps, and the time
+# axis is expressed in seconds. It includes data for a single individual
+# (``individual_0``), tracked using two keypoints (``head`` and ``stinger``)
+# in ``x`` and ``y`` coordinates.
+# The dataset contains two data variables: ``position`` (predicted keypoint
+# coordinates) and ``confidence``.
+
 
 # %%
 # Visualise the pose tracks
 # -------------------------
 
-position = ds.position.sel(individuals="individual_0")
+position = ds.position.squeeze()  # remove the individuals dimension (size 1)
 position.plot.line(x="time", row="keypoints", hue="space", aspect=2, size=2.5)
 
 # %%
@@ -47,14 +49,14 @@ position.plot.line(x="time", row="keypoints", hue="space", aspect=2, size=2.5)
 # it's always a good idea to inspect the actual confidence values in the data.
 #
 # Let's first look at a histogram of the confidence scores.
-ds.confidence.plot.hist(bins=20)
+confidence = ds.confidence.squeeze()
+confidence.plot.hist(bins=20)
 
 # %%
 # Based on the above histogram, we can confirm that the confidence scores
 # indeed range between 0 and 1, with most values closer to 1. Now let's see how
 # they evolve over time.
 
-confidence = ds.confidence.sel(individuals="individual_0")
 confidence.plot.line(x="time", row="keypoints", aspect=2, size=2.5)
 
 # %%
@@ -71,6 +73,7 @@ confidence.plot.line(x="time", row="keypoints", aspect=2, size=2.5)
 # with confidence scores below this threshold will be converted to NaN.
 # The ``print_report`` argument, which is True by default, reports the number
 # of NaN values in the dataset before and after the filtering operation.
+from movement.filtering import filter_by_confidence, interpolate_over_time
 
 ds_filtered = filter_by_confidence(ds, threshold=0.6, print_report=True)
 
@@ -78,7 +81,7 @@ ds_filtered = filter_by_confidence(ds, threshold=0.6, print_report=True)
 # We can see that the filtering operation has introduced NaN values in the
 # ``position`` data variable. Let's visualise the filtered data.
 
-position_filtered = ds_filtered.position.sel(individuals="individual_0")
+position_filtered = ds_filtered.position.squeeze()
 position_filtered.plot.line(
     x="time", row="keypoints", hue="space", aspect=2, size=2.5
 )
@@ -106,9 +109,7 @@ ds_interpolated = interpolate_over_time(
 # We see that all NaN values have disappeared, meaning that all gaps were
 # indeed shorter than 1 second. Let's visualise the interpolated pose tracks
 
-position_interpolated = ds_interpolated.position.sel(
-    individuals="individual_0"
-)
+position_interpolated = ds_interpolated.position.squeeze()
 position_interpolated.plot.line(
     x="time", row="keypoints", hue="space", aspect=2, size=2.5
 )
@@ -125,3 +126,5 @@ position_interpolated.plot.line(
 
 for log_entry in ds_interpolated.log:
     print(log_entry)
+
+# %%
