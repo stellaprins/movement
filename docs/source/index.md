@@ -6,25 +6,32 @@ A Python toolbox for analysing body movements across space and time, to aid the 
 ::::{grid} 1 2 2 3
 :gutter: 3
 
-:::{grid-item-card} {fas}`rocket;sd-text-primary` Getting Started
-:link: getting_started
+:::{grid-item-card} {fas}`rocket;sd-text-primary` Installation
+:link: installation
 :link-type: doc
 
-Install and try it out.
+How to install movement.
 :::
 
-:::{grid-item-card} {fas}`chalkboard-user;sd-text-primary` Examples
+:::{grid-item-card} {fas}`chalkboard-user;sd-text-primary` Tutorial
+:link: tutorial
+:link-type: doc
+
+Learn the basics by walking through a real-world example.
+:::
+
+:::{grid-item-card} {fas}`check-square;sd-text-primary` Examples
 :link: examples/index
 :link-type: doc
 
-Example use cases.
+Examples showcasing how to accomplish common tasks.
 :::
 
-:::{grid-item-card} {fas}`comments;sd-text-primary` Join the movement
+:::{grid-item-card} {fas}`comments;sd-text-primary` Community
 :link: community/index
 :link-type: doc
 
-Get in touch and contribute.
+Join the movement to get help and contribute.
 :::
 ::::
 
@@ -46,7 +53,8 @@ Find out more on our [mission and scope](target-mission) statement and our [road
 :maxdepth: 2
 :hidden:
 
-getting_started
+installation
+tutorial
 examples/index
 community/index
 api_index
