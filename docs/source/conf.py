@@ -90,12 +90,23 @@ exclude_patterns = [
     "examples/*.py",
 ]
 
+# Configuration for intersphinx
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "pandas": ("https://pandas.pydata.org/docs/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
+    "xarray": ("https://xarray.pydata.org/en/stable/", None),
+}
 # Configure Sphinx gallery
 sphinx_gallery_conf = {
     "examples_dirs": ["../../examples"],
     "filename_pattern": "/*.py",  # which files to execute before inclusion
     "gallery_dirs": ["examples"],  # output directory
     "run_stale_examples": True,  # re-run examples on each build
+    "remove_config_comments": True,
+    "reference_url": {"movement": None},  # Needed for intersphinx to work
     # Integration with Binder, see https://sphinx-gallery.github.io/stable/configuration.html#generate-binder-links-for-gallery-notebooks-experimental
     "binder": {
         "org": "neuroinformatics-unit",
