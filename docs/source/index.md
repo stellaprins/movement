@@ -17,14 +17,14 @@ How to install movement.
 :link: tutorial
 :link-type: doc
 
-Learn the basics by walking through a real-world example.
+Learn the basics through a real-world example.
 :::
 
-:::{grid-item-card} {fas}`check-square;sd-text-primary` Examples
+:::{grid-item-card} {fas}`bullseye;sd-text-primary` How-to Guides
 :link: examples/index
 :link-type: doc
 
-Examples showcasing how to accomplish common tasks.
+Examples using movement to complete specific tasks.
 :::
 
 :::{grid-item-card} {fas}`comments;sd-text-primary` Community
@@ -33,6 +33,21 @@ Examples showcasing how to accomplish common tasks.
 
 Join the movement to get help and contribute.
 :::
+
+:::{grid-item-card} {fas}`book;sd-text-primary` Background
+:link: background/index
+:link-type: doc
+
+Conceptual guides, explanations and terminology.
+:::
+
+:::{grid-item-card} {fas}`code;sd-text-primary` API Reference
+:link: api_index
+:link-type: doc
+
+An index of all functions and classes.
+:::
+
 ::::
 
 ![](_static/movement_overview.png)
@@ -57,5 +72,6 @@ installation
 tutorial
 examples/index
 community/index
+background/index
 api_index
 ```
