@@ -1,6 +1,8 @@
 (target-installation)=
 # Installation
 
+## Create a conda environment
+
 :::{admonition} Use a conda environment
 :class: note
 We recommend you install movement inside a [conda](conda:)
@@ -16,6 +18,8 @@ You can call your environment whatever you like, we've used "movement-env".
 conda create -n movement-env -c conda-forge python=3.10 pytables
 conda activate movement-env
 ```
+
+## Install the package
 
 Then install the `movement` package as described below.
 
@@ -50,3 +54,14 @@ Please see the [contributing guide](target-contributing) for more information.
 :::
 
 ::::
+
+## Check the installation
+
+To check that the package is installed correctly, you can run the following
+command in your terminal (with the `movement-env` activated):
+
+```sh
+python -c "import movement; print(movement.__version__)"
+```
+
+This should print the version number of the installed `movement` package.
