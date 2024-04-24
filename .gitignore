@@ -56,10 +56,10 @@ local_settings.py
 # Flask instance folder
 instance/
 
-# Sphinx documentation
+# Sphinx-generated files
 docs/build/
-docs/source/examples/
-docs/source/api/
+docs/source/auto_examples/
+docs/source/auto_api/
 sg_execution_times.rst
 
 # MkDocs documentation

@@ -21,5 +21,6 @@ help:
 
 
 clean:
-        rm -rf $(BUILDDIR)/*
-        rm -rf examples/
+	-rm -rf $(BUILDDIR)/*
+    -rm -rf auto_examples/
+	-rm -rf auto_api/*

@@ -8,7 +8,7 @@ Input/Output
 ------------
 .. currentmodule:: movement.io.load_poses
 .. autosummary::
-    :toctree: api
+    :toctree: auto_api
 
     from_file
     from_sleap_file
@@ -18,7 +18,7 @@ Input/Output
 
 .. currentmodule:: movement.io.save_poses
 .. autosummary::
-    :toctree: api
+    :toctree: auto_api
 
     to_dlc_file
     to_dlc_df
@@ -27,7 +27,7 @@ Input/Output
 
 .. currentmodule:: movement.io.validators
 .. autosummary::
-    :toctree: api
+    :toctree: auto_api
 
     ValidFile
     ValidHDF5
@@ -38,7 +38,7 @@ Sample Data
 -----------
 .. currentmodule:: movement.sample_data
 .. autosummary::
-    :toctree: api
+    :toctree: auto_api
 
     list_sample_data
     fetch_sample_data_path
@@ -48,7 +48,7 @@ Filtering
 ---------
 .. currentmodule:: movement.filtering
 .. autosummary::
-    :toctree: api
+    :toctree: auto_api
 
     filter_by_confidence
     interpolate_over_time
@@ -58,7 +58,7 @@ Analysis
 -----------
 .. currentmodule:: movement.analysis.kinematics
 .. autosummary::
-    :toctree: api
+    :toctree: auto_api
 
     compute_displacement
     compute_velocity
@@ -66,7 +66,7 @@ Analysis
 
 .. currentmodule:: movement.utils.vector
 .. autosummary::
-    :toctree: api
+    :toctree: auto_api
 
     cart2pol
     pol2cart
@@ -75,7 +75,7 @@ Move Accessor
 -------------
 .. currentmodule:: movement.move_accessor
 .. autosummary::
-    :toctree: api
+    :toctree: auto_api
 
     MoveAccessor
 
@@ -83,7 +83,7 @@ Logging
 -------
 .. currentmodule:: movement.logging
 .. autosummary::
-    :toctree: api
+    :toctree: auto_api
 
     configure_logging
     log_error

@@ -281,7 +281,7 @@ linkcheck_anchors_ignore_for_url = [
 
 ## Sample data
 
-We maintain some sample data to be used for testing, examples and tutorials on an
+We maintain some sample data to be used in tests and examples on an
 [external data repository](gin:neuroinformatics/movement-test-data).
 Our hosting platform of choice is called [GIN](gin:) and is maintained
 by the [German Neuroinformatics Node](https://www.g-node.org/).

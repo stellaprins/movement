@@ -13,15 +13,8 @@ A Python toolbox for analysing body movements across space and time, to aid the 
 How to install movement.
 :::
 
-:::{grid-item-card} {fas}`chalkboard-user;sd-text-primary` Tutorial
-:link: tutorial
-:link-type: doc
-
-Learn the basics through a real-world example.
-:::
-
-:::{grid-item-card} {fas}`bullseye;sd-text-primary` How-to Guides
-:link: examples/index
+:::{grid-item-card} {fas}`bullseye;sd-text-primary` User Guide
+:link: auto_examples/index
 :link-type: doc
 
 Examples using movement to complete specific tasks.
@@ -69,8 +62,7 @@ Find out more on our [mission and scope](target-mission) statement and our [road
 :hidden:
 
 installation
-tutorial
-examples/index
+auto_examples/index
 community/index
 background/index
 api_index

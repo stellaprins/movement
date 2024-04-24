@@ -1,7 +1,7 @@
 """Module for fetching and loading sample datasets.
 
 This module provides functions for fetching and loading sample data used in
-tests, examples, and tutorials. The data are stored in a remote repository
+tests and examples. The data are stored in a remote repository
 on GIN and are downloaded to the user's local machine the first time they
 are used.
 """
