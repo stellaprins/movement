@@ -1,38 +1,38 @@
 (target-dataset)=
 # movement dataset
 
-`movement` datasets are
-[`xarray.Dataset`](xarray:generated/xarray.Dataset.html) objects, with some
-added functionality for storing pose tracks and their derived quantities.
+`movement` datasets are {class}`xarray.Dataset` objects, with some
+added functionality for storing {term}`pose tracks` and related data.
 Each dataset contains multiple data variables, dimensions, coordinates and
 attributes.
 
 ![](../_static/dataset_structure.png)
 
-## Dimensions
-The *movement dataset* has the following dimensions:
-- `time`: the number of frames in the video
-- `individuals`: the number of individuals in the video
-- `keypoints`: the number of keypoints in the skeleton
+## Dimensions and coordinates
+The dataset has the following dimensions:
+- `time`, with size equal to the number of frames in the video
+- `individuals`, with size equal to the number of individuals in the video
+- `keypoints`, with size equal to the number of tracked keypoints per individual
 - `space`: the number of spatial dimensions, either 2 or 3
 
-Appropriate coordinate labels are assigned to each dimension:
+Appropriate coordinates, i.e. labels, are assigned to each dimension:
 list of unique names (str) for `individuals` and `keypoints`,
-['x','y',('z')] for `space`. The coordinates of the `time` dimension are
+`[x, y, (z)]` for `space`. The coordinates of the `time` dimension are
 in seconds if `fps` is provided, otherwise they are in frame numbers.
 
 ## Data variables
 
 Right after loading some predicted pose tracks into `movement`, the dataset
-contains two data variables stored as
-[`xarray.DataArray`](xarray:generated/xarray.DataArray.html#xarray.DataArray)
-objects:
+contains two data variables stored as {class}`xarray.DataArray` objects:
 - `position`: with shape (`time`, `individuals`, `keypoints`, `space`)
 - `confidence`: with shape (`time`, `individuals`, `keypoints`)
 
-You can think of a `DataArray` as a `numpy.ndarray` with `pandas`-style
-indexing and labelling. To learn more about `xarray` data structures, see the
-relevant [documentation](xarray:user-guide/data-structures.html).
+You can think of a `DataArray` as a {class}`numpy.ndarray` with `pandas`-style
+indexing and labelling. We see that the `position` and `confidence` data
+variables share 3 dimensions, and there are advantages to grouping them
+together in the same `Dataset` object. To learn more about `xarray` data
+structures, see the relevant
+[documentation](xarray:user-guide/data-structures.html).
 
 ## Attributes
 

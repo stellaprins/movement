@@ -4,8 +4,10 @@
 Conceptual guides, explanations and terminology.
 
 ```{toctree}
-:maxdepth: 2
-:hidden:
+:maxdepth: 1
 
+supported_formats
+sample_data
 movement_dataset
+glossary
 ```
