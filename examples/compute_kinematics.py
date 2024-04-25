@@ -2,115 +2,35 @@
 """Compute and visualise kinematics.
 ====================================
 
-Compute displacement, velocity and acceleration data on an example dataset and
-visualise the results.
+Compute and visualise displacement, velocity and acceleration.
 """
 
 # %%
-# Imports
-# -------
-
-import numpy as np
-
-# For interactive plots: install ipympl with `pip install ipympl` and uncomment
-# the following line in your notebook
-# %matplotlib widget
-from matplotlib import pyplot as plt
+# Load a dataset
+# --------------------------
+# Here we load an example dataset that comes with the ``movement``.
+# If you wish to load your own data from a file, refer to the
+# :ref:`sphx_glr_auto_examples_load_pose_tracks.py` guide.
+# sphinx_gallery_thumbnail_number = 5
 
 from movement import sample_data
 
-# %%
-# Load sample dataset
-# ------------------------
-# First, we load an example dataset. In this case, we select the
-# ``SLEAP_three-mice_Aeon_proofread`` sample data.
 ds = sample_data.fetch_sample_data(
-    "SLEAP_three-mice_Aeon_proofread.analysis.h5",
+    "SLEAP_three-mice_Aeon_proofread.analysis.h5"
 )
 
-print(ds)
+ds
 
 # %%
-# We can see in the printed description of the dataset ``ds`` that
-# the data was acquired at 50 fps, and the time axis is expressed in seconds.
-# It includes data for three individuals(``AEON3B_NTP``, ``AEON3B_TP1``,
-# and ``AEON3B_TP2``), and only one keypoint called ``centroid`` was tracked
-# in ``x`` and ``y`` dimensions.
+# This is the same dataset we used in the
+# :ref:`sphx_glr_auto_examples_visualise_pose_tracks.py` guide.
+# Refer back to that guide to recall the thrajectories of the three mice
+# (``AEON3B_NTP``, ``AEON3B_TP1`` and ``AEON3B_TP2``) in the dataset.
+# Let's extract the ``position`` data variable from the dataset,
+# for later use.
 
-# %%
-# The loaded dataset ``ds`` contains two data arrays:
-# ``position`` and ``confidence``.
-# To compute displacement, velocity and acceleration, we will need the
-# ``position`` one:
 position = ds.position
 
-
-# %%
-# Visualise the data
-# ---------------------------
-# First, let's visualise the trajectories of the mice in the XY plane,
-# colouring them by individual.
-
-fig, ax = plt.subplots(1, 1)
-for mouse_name, col in zip(position.individuals.values, ["r", "g", "b"]):
-    ax.plot(
-        position.sel(individuals=mouse_name, space="x"),
-        position.sel(individuals=mouse_name, space="y"),
-        linestyle="-",
-        marker=".",
-        markersize=2,
-        linewidth=0.5,
-        c=col,
-        label=mouse_name,
-    )
-    ax.invert_yaxis()
-    ax.set_xlabel("x (pixels)")
-    ax.set_ylabel("y (pixels)")
-    ax.axis("equal")
-    ax.legend()
-
-# %%
-# We can see that the trajectories of the three mice are close to a circular
-# arc. Notice that the x and y axes are set to equal scales, and that the
-# origin of the coordinate system is at the top left of the image. This
-# follows the convention for SLEAP and most image processing tools.
-
-# %%
-# We can also color the data points based on their timestamps:
-fig, axes = plt.subplots(3, 1, sharey=True)
-for mouse_name, ax in zip(position.individuals.values, axes):
-    sc = ax.scatter(
-        position.sel(individuals=mouse_name, space="x"),
-        position.sel(individuals=mouse_name, space="y"),
-        s=2,
-        c=position.time,
-        cmap="viridis",
-    )
-    ax.invert_yaxis()
-    ax.set_title(mouse_name)
-    ax.set_xlabel("x (pixels)")
-    ax.set_ylabel("y (pixels)")
-    ax.axis("equal")
-    fig.colorbar(sc, ax=ax, label="time (s)")
-fig.tight_layout()
-
-# %%
-# These plots show that for this snippet of the data,
-# two of the mice (``AEON3B_NTP`` and ``AEON3B_TP1``)
-# moved around the circle in clockwise direction, and
-# the third mouse (``AEON3B_TP2``) followed an anti-clockwise direction.
-
-# %%
-# We can also easily plot the components of the position vector against time
-# using ``xarray``'s built-in plotting methods. We use ``squeeze()`` to
-# remove the dimension of length 1 from the data (the keypoints dimension).
-position.squeeze().plot.line(x="time", row="individuals", aspect=2, size=2.5)
-plt.gcf().show()
-
-# %%
-# If we use ``xarray``'s plotting function, the axes units are automatically
-# taken from the data array. In our case, ``time`` is expressed in seconds,
-# and the ``x`` and ``y`` coordinates of the ``position`` are in pixels.
 
 # %%
 # Compute displacement
@@ -126,10 +46,9 @@ displacement = ds.move.displacement
 # position data.
 
 # %%
-# Notice that we could also compute the displacement (and all the other
+# Note that we could also compute the displacement (and all the other
 # kinematic variables) using the kinematics module:
 
-# %%
 import movement.analysis.kinematics as kin
 
 displacement_kin = kin.compute_displacement(position)
@@ -158,6 +77,9 @@ print(f"Shape of displacement: {displacement.shape}")
 # %%
 # We can visualise these displacement vectors with a quiver plot. In this case
 # we focus on the mouse ``AEON3B_TP2``:
+
+from matplotlib import pyplot as plt
+
 mouse_name = "AEON3B_TP2"
 
 fig = plt.figure()
@@ -257,6 +179,8 @@ fig.colorbar(sc, ax=ax, label="time (s)")
 # %%
 # With the displacement data we can compute the distance travelled by the
 # mouse along its trajectory.
+
+import numpy as np
 
 # length of each displacement vector
 displacement_vectors_lengths = np.linalg.norm(

@@ -14,7 +14,8 @@ pose tracks.
 # --------------------------
 # Here we load an example dataset that comes with the ``movement``.
 # If you wish to load your own data from a file, refer to the
-# :ref:`sphx_glr_examples_load_pose_tracks.py` guide.
+# :ref:`sphx_glr_auto_examples_load_pose_tracks.py` guide.
+# sphinx_gallery_thumbnail_number = 2
 
 from movement import sample_data
 
@@ -93,3 +94,7 @@ for mouse_name, ax in zip(position.individuals.values, axes):
 fig.tight_layout()
 
 # %%
+# These plots show that for this snippet of the data,
+# two of the mice (``AEON3B_NTP`` and ``AEON3B_TP1``)
+# moved around the circle in clockwise direction, and
+# the third mouse (``AEON3B_TP2``) followed an anti-clockwise direction.

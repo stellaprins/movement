@@ -1,5 +1,5 @@
-"""Load pose tracks
-===================
+"""1. Load pose tracks
+======================
 
 Load data from pose tracking software into a movement dataset.
 """
@@ -38,9 +38,13 @@ ds = load_poses.from_file(
 
 # %%
 # This function will load data from any supported pose tracking software,
-# by calling the appropriate loading function, e.g.,
-# :py:func:`movement.io.load_poses.from_sleap_file` for SLEAP. Please refer to
-# these functions for more information on the supported file formats.
+# by calling the appropriate loading function, one of:
+#
+# - :py:func:`movement.io.load_poses.from_dlc_file`
+# - :py:func:`movement.io.load_poses.from_sleap_file`
+# - :py:func:`movement.io.load_poses.from_lp_file`
+#
+# Please refer to these for more information on the supported file formats.
 
 # %%
 # Inspect the dataset
@@ -63,3 +67,7 @@ ds
 # called ``centroid`` was tracked in ``x`` and ``y`` coordinates.
 # The dataset contains two data variables: ``position`` (predicted keypoint
 # coordinates) and ``confidence``.
+
+# %%
+# To learn how to visualise the pose tracks, refer to the
+# :ref:`sphx_glr_auto_examples_visualise_pose_tracks.py` guide.

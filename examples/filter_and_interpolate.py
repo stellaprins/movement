@@ -10,7 +10,8 @@ missing values.
 # --------------------------
 # Here we load an example dataset that comes with the ``movement``.
 # If you wish to load your own data from a file, refer to the
-# :ref:`sphx_glr_examples_load_pose_tracks.py` guide.
+# :ref:`sphx_glr_auto_examples_load_pose_tracks.py` guide.
+# sphinx_gallery_thumbnail_number = 4
 
 from movement import sample_data
 
