@@ -54,6 +54,14 @@ Filtering
     interpolate_over_time
     report_nan_values
 
+Kalman Filter
+-------------
+.. currentmodule:: movement.kalman
+.. autosummary::
+    :toctree: api
+
+    KalmanFilter
+
 Analysis
 -----------
 .. currentmodule:: movement.analysis.kinematics
