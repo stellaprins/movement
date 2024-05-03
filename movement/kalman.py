@@ -7,45 +7,6 @@ from numpy.typing import NDArray
 class KalmanFilter:
     """A a generic multidimensional kalman filter without any control inputs.
 
-    The implementations follows the https://www.kalmanfilter.net/ tutorial and
-    the variable names mostly adhere to the tutorial's notation.
-
-    The Kalman filter is a recursive algorithm that estimates the hidden state
-    of a linear dynamic system from a series of noisy measurements :math:`Z`
-    over time. It is a two-step process consisting of a *prediction* and
-    an *update* step.
-
-    In the *prediction* step, the next state vector :math:`x_{n+1,n}` and its
-    covariance :math:`P_{n+1,n}` are predicted from the previous state vector
-    :math:`x_{n,n}` and its covariance :math:`P_{n,n}`, according to the
-    following equations:
-
-    .. math::
-        x_{n+1,n} = F x_{n,n}
-
-        P_{n+1,n} = F P_{n,n} F^T + Q
-
-    The state transition matrix `F` governs the model dynamics. The process
-    noise is assumed to be a zero-mean Gaussian with covariance :math:`Q`.
-
-    In the *update* step, the previously predicted state vector :math:`x_{n,n}`
-    and its covariance :math:`P_{n,n}` are corrected based on the new
-    measurement :math:`z_n` according to the following equations:
-
-    .. math::
-        K_n = P_{n,n-1} H^T (H P_{n,n-1} H^T + R)^{-1}
-
-        x_{n,n} = x_{n,n-1} + K_n (z_n - H x_{n,n-1})
-
-        P_{n,n} = (I - K_n H) P_{n,n-1} (I - K_n H)^T + K_n R K_n^T
-
-    The Kalman gain matrix :math:`K` determines the relative weight of the new
-    measurement and the predicted state vector. The measurement noise is
-    assumed to be a zero-mean Gaussian with covariance :math:`R`.
-    The observation matrix :math:`H` maps the state vector to the measurement
-    space. :math:`I` is the identity matrix.
-
-
     Attributes
     ----------
     Z : numpy.NDArray
@@ -85,6 +46,46 @@ class KalmanFilter:
     K : numpy.NDArray
         Kalman gain matrices across time points,
         shape (num_states, num_measures, num_timepoints).
+
+    Notes
+    -----
+    The implementations follows the https://www.kalmanfilter.net/ tutorial and
+    the variable names mostly adhere to the tutorial's notation.
+
+    The Kalman filter is a recursive algorithm that estimates the hidden state
+    of a linear dynamic system from a series of noisy measurements :math:`Z`
+    over time. It is a two-step process consisting of a *prediction* and
+    an *update* step.
+
+    In the *prediction* step, the next state vector :math:`x_{n+1,n}` and its
+    covariance :math:`P_{n+1,n}` are predicted from the previous state vector
+    :math:`x_{n,n}` and its covariance :math:`P_{n,n}`, according to the
+    following equations:
+
+    .. math::
+        x_{n+1,n} = F x_{n,n}
+
+        P_{n+1,n} = F P_{n,n} F^T + Q
+
+    The state transition matrix `F` governs the model dynamics. The process
+    noise is assumed to be a zero-mean Gaussian with covariance :math:`Q`.
+
+    In the *update* step, the previously predicted state vector :math:`x_{n,n}`
+    and its covariance :math:`P_{n,n}` are corrected based on the new
+    measurement :math:`z_n` according to the following equations:
+
+    .. math::
+        K_n = P_{n,n-1} H^T (H P_{n,n-1} H^T + R)^{-1}
+
+        x_{n,n} = x_{n,n-1} + K_n (z_n - H x_{n,n-1})
+
+        P_{n,n} = (I - K_n H) P_{n,n-1} (I - K_n H)^T + K_n R K_n^T
+
+    The Kalman gain matrix :math:`K` determines the relative weight of the new
+    measurement and the predicted state vector. The measurement noise is
+    assumed to be a zero-mean Gaussian with covariance :math:`R`.
+    The observation matrix :math:`H` maps the state vector to the measurement
+    space. :math:`I` is the identity matrix.
 
     """
 
