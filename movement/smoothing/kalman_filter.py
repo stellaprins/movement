@@ -1,12 +1,14 @@
+"""Kalman filter implementation for linear dynamic systems."""
+
 import numpy as np
-from numpy import NDArray
+from numpy.typing import NDArray
 
 
 class KalmanFilter:
-    """A class implementing a generic multidimensional kalman filter
-    without any control inputs. The implementations follows the
-    https://www.kalmanfilter.net/ tutorial and the variable names mostly
-    adhere to the tutorial's notation.
+    """A a generic multidimensional kalman filter without any control inputs.
+
+    The implementations follows the https://www.kalmanfilter.net/ tutorial and
+    the variable names mostly adhere to the tutorial's notation.
 
     The Kalman filter is a recursive algorithm that estimates the hidden state
     of a linear dynamic system from a series of noisy measurements :math:`Z`
@@ -83,6 +85,7 @@ class KalmanFilter:
     K : numpy.NDArray
         Kalman gain matrices across time points,
         shape (num_states, num_measures, num_timepoints).
+
     """
 
     def __init__(
@@ -95,7 +98,8 @@ class KalmanFilter:
         x0: NDArray,
         P0: NDArray,
     ):
-        """
+        """Initialize the Kalman filter with the system parameters.
+
         Parameters
         ----------
         Z : numpy.NDArray
@@ -116,6 +120,7 @@ class KalmanFilter:
         P0 : numpy.NDArray
             initial state covariance matrix at time 0,
             shape (num_states, num_states).
+
         """
         self.Z = Z
         self.R = R
@@ -143,10 +148,10 @@ class KalmanFilter:
 
     def run(self):
         """Run the Kalman filter on the measurement matrix `Z`.
+
         Recursively predict and update the state vector and its covariance
         at each time point.
         """
-
         # Initialize the state vector and its covariance matrix
         x_current = self.x0
         P_current = self.P0
@@ -160,7 +165,7 @@ class KalmanFilter:
             # Update step
             P_matmul_HT = P_next @ self.H.T  # precompute for efficiency
             k = P_matmul_HT @ np.linalg.inv(
-                (self.H @ P_matmul_HT + self.R)
+                self.H @ P_matmul_HT + self.R
             )  # Kalman gain
 
             x_current = x_next + k @ (
