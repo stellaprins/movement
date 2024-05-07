@@ -3,8 +3,11 @@
 import numpy as np
 from numpy.typing import NDArray
 
+from movement import sample_data
+from movement.logging import configure_logging
 
-class KalmanFilter:
+
+class BaseKalmanFilter:
     """A a generic multidimensional kalman filter without any control inputs.
 
     Attributes
@@ -182,12 +185,93 @@ class KalmanFilter:
 
             # Save the results
             self.X_est[:, n] = x_current
-            self.P_est[:, :, n] = P_current[..., np.newaxis]
+            self.P_est[:, :, n] = P_current
             self.X_pred[:, n] = x_next
-            self.P_pred[:, :, n] = P_next[..., np.newaxis]
-            self.K[:, :, n] = k[..., np.newaxis]
+            self.P_pred[:, :, n] = P_next
+            self.K[:, :, n] = k
 
         # Predict at the last time point
         self.X_pred[:, -1] = self.F @ x_current
         P_next = self.F @ P_current @ self.F.T + self.Q
-        self.P_pred[:, :, -1] = P_next[..., np.newaxis]
+        self.P_pred[:, :, -1] = P_next
+
+
+class KalmanFilter2D(BaseKalmanFilter):
+    """A Kalman filter for tracking movements in 2D space.
+
+    This is a constant acceleration Kalman filter that estimates the 2D
+    position, velocity, and acceleration of a moving object from noisy
+    measurements of its position.
+
+    We are estimating 2 x 3 = 6 states:
+    - position (x, y)
+    - velocity (vx, vy)
+    - acceleration (ax, ay)
+
+    From 2 measurements:
+    - position (x, y)
+
+    """
+
+    # Initialise with the correct matrices for a constant acceleration model
+    def __init__(
+        self,
+        pos: NDArray,
+        pos_noise: NDArray,
+        dt: float,
+    ):
+        """Initialize the Kalman filter with the system parameters.
+
+        Parameters
+        ----------
+        pos: numpy.NDArray
+            measured position matrix, shape (2, num_timepoints)
+        pos_noise: numpy.NDArray
+            position measurement noise covariance matrix, shape (2, 2).
+        dt: float
+            time step between measurements.
+
+        """
+        # Define the state transition matrix
+        F = np.array(
+            [
+                [1, 0, dt, 0, 0.5 * dt**2, 0],
+                [0, 1, 0, dt, 0, 0.5 * dt**2],
+                [0, 0, 1, 0, dt, 0],
+                [0, 0, 0, 1, 0, dt],
+                [0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 1],
+            ]
+        )
+
+        # Define the observation matrix
+        H = np.array([[1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0]])
+
+        # Define the process noise covariance matrix
+        Q = np.eye(6) * 1e-5
+
+        # Define the initial state vector
+        x0 = np.array([pos[0, 0], pos[1, 0], 0, 0, 0, 0])
+
+        # Define the initial state covariance matrix
+        P0 = np.eye(6) * 1e-5
+
+        super().__init__(
+            pos,
+            pos_noise,
+            H,
+            F,
+            Q,
+            x0,
+            P0,
+        )
+
+
+if __name__ == "__main__":
+    configure_logging()
+
+    ds = sample_data.fetch_dataset("DLC_single-mouse_EPM.predictions.h5")
+    dt = 1 / ds.fps
+    position = ds["position"]
+    position_centre = position.sel(keypoint="centre").squeeze().values
+    print(position_centre.shape)
