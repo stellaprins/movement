@@ -86,3 +86,66 @@ print(f"Expected output      : {expected_output}")
 print(f"Filtered interactions: {filtered_interactions}")
 
 assert np.all(filtered_interactions == expected_output)
+
+# %%
+# Find bouts of interactions
+# --------------------------
+# Identify the number and length of bouts of interactions in the filtered
+# array. A bout is a continuous sequence of ``True`` values.
+
+# %%
+# Define a function that finds the bouts of interactions in the filtered array.
+# First we will pad the array with 1 False value at the beginning and end
+# to ensure that the first and last bouts are detected.
+# Next, we will find the start and end positions of the bouts, using the
+# differences between consecutive values.
+
+
+def find_bouts(arr: np.ndarray) -> np.ndarray:
+    """Find bouts of interactions in a 1D boolean array.
+
+    A bout is a continuous sequence of True values.
+
+    Parameters
+    ----------
+    arr : np.ndarray
+        The input boolean array (must be 1D)
+
+    Returns
+    -------
+    bout_idxs : np.ndarray
+        The start and end indices of each bout as a 2D array.
+        Each row corresponds to a bout.
+        "start" means the first True value in the bout.
+        "end" means the first False value after the bout.
+
+    """
+    padded_interactions = np.pad(
+        arr, 1, mode="constant", constant_values=False
+    )
+    diffs = np.diff(padded_interactions.astype(int))
+    # Start positions are where the diff is 1 (False to True)
+    # We subtract 1 to account for padding
+    start_positions = np.nonzero(diffs == 1)[0]
+    # End positions are where the diff is -1 (True to False)
+    end_positions = np.nonzero(diffs == -1)[0]
+    # Create a 2D array where each row is a bout
+    # and the columns are the start and end indices
+    bout_idxs = np.column_stack((start_positions, end_positions))
+    return bout_idxs
+
+
+# %%
+# Let's test the function on the filtered interactions.
+
+bout_starts_ends = find_bouts(filtered_interactions)
+bout_lengths = bout_starts_ends[:, 1] - bout_starts_ends[:, 0]
+print(f"Filtered interactions: {filtered_interactions}")
+print(f"Bout lengths         : {bout_lengths}")
+
+for start, end in bout_starts_ends:
+    print(f"Bout start: {start}, end: {end}")
+    print(f"Bout length: {end - start}")
+    bout_content = filtered_interactions[start:end]
+    print(f"Bout content: {bout_content}\n")
+    assert np.all(bout_content)  # check that all values are True
