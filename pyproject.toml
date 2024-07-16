@@ -42,6 +42,7 @@ classifiers = [
 "User Support" = "https://neuroinformatics.zulipchat.com/#narrow/stream/406001-Movement"
 
 [project.optional-dependencies]
+fastplotlib = ["fastplotlib[notebook]"]
 dev = [
   "pytest",
   "pytest-cov",
@@ -57,6 +58,7 @@ dev = [
   "check-manifest",
   "types-PyYAML",
   "types-requests",
+  "movement[fastplotlib]",
 ]
 
 [project.scripts]
