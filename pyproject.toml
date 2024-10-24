@@ -13,14 +13,14 @@ dynamic = ["version"]
 license = { text = "BSD-3-Clause" }
 
 dependencies = [
-  "numpy",
-  "pandas",
+  "numpy>=1.24.0",
+  "pandas>=2.0.0",
   "h5py",
   "attrs",
   "pooch",
   "tqdm",
   "sleap-io",
-  "xarray[accel,viz]",
+  "xarray[accel,viz]>=2022.11.0",
   "PyYAML",
 ]
 
