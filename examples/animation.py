@@ -1,7 +1,7 @@
-"""Compute navigation metrics.
-==============================
+"""Make animation with some navigation metrics.
+===============================================
 
-Analyse a  mouse navigating in an elevated plus maze (EPM).
+The animation is based on mouse navigating an elevated plus maze (EPM).
 """
 
 # %%
