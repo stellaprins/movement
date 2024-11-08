@@ -12,15 +12,21 @@ import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import numpy as np
 import seaborn as sns
+import sleap_io as sio
+import xarray as xr
 from matplotlib.animation import FuncAnimation
-from matplotlib.colors import ListedColormap
 from matplotlib.gridspec import GridSpec
 
 from movement import filtering as filt
 from movement import kinematics as kin
 from movement.io import load_poses, save_poses
+from movement.utils.plotting import (
+    plot_frame_with_keypoints,
+    plot_heading_polar,
+    plot_trajectory,
+)
+from movement.utils.vector import cart2pol
 
 # %%
 # Set up directories
@@ -34,10 +40,6 @@ deriv_dir = project_dir / "derivatives"
 # Find videos and (1st frame of each video in the source directory
 video_files = list(source_dir.glob("*.mp4"))
 video_files.sort()
-
-# Find the first frame of each video (showing the maze)
-maze_files = list(source_dir.glob("*.png"))
-maze_files.sort()
 
 # Find filtered DLC predictions
 dlc_dir = deriv_dir / "software-DLC_predictions"
@@ -55,7 +57,6 @@ subject_data = dict()
 for i, sub in enumerate(subject_ids):
     subject_data[sub] = {
         "video": video_files[i].as_posix(),
-        "maze": maze_files[i].as_posix(),
         "dlc": dlc_files[i].as_posix(),
     }
 print("Found the following data:")
@@ -65,38 +66,24 @@ print(json.dumps(subject_data, sort_keys=True, indent=4))
 # %%
 # Load data
 # ---------
+# First let's define a specific subject and time window
 
 sub = "sub-01"
-
-# Load the DeepLabCut predictions into a movement dataset
-ds = load_poses.from_dlc_file(subject_data[sub]["dlc"], fps=30)
-# Load the maze image
-maze_image = plt.imread(subject_data[sub]["maze"])
-
-# 900 frames extracted from the video (frames 900 - 1800)
-frames_dir = save_dir / f"{sub}_frames"
-frames_files = list(frames_dir.glob("*.png"))
-frames_files.sort()
-# Load the 900 png files as a numpy array
-frames = np.stack([plt.imread(f) for f in frames_files])
+fps = 30  # frames per second
 
 # %%
-# Define the time window for the extracted frames
-time_window = (30, 60)  # in seconds (fps=30)
+# Load the DeepLabCut predictions into a movement dataset
 
-# Define the xlims of the maze
-maze_xlims = (250, 1100)
+ds = load_poses.from_dlc_file(subject_data[sub]["dlc"], fps=fps)
+print(ds)
 
-# Keypoints to keep
-use_kpts = [
-    "snout",
-    "left_ear",
-    "right_ear",
-    "centre",
-    "lateral_left",
-    "lateral_right",
-    "tailbase",
-]
+# %%
+# Load the video object
+
+video = sio.load_video(subject_data[sub]["video"], plugin="pyav")
+n_frames, height, width, channels = video.shape
+print(f"Loaded video with shape: {video.shape}")
+
 
 # %%
 # Filter the data
@@ -125,247 +112,181 @@ if save_path.exists():
     save_path.unlink()
 save_poses.to_dlc_file(ds_filt, save_path, split_individuals=False)
 
-# Separately save only the selected time window
-time_window_str = f"sec-{time_window[0]}-{time_window[1]}"
-save_path = save_dir / f"{sub}_dlc_predictions_filtered_{time_window_str}.csv"
-if save_path.exists():
-    save_path.unlink()
-save_poses.to_dlc_file(
-    ds_filt.sel(time=slice(*time_window)), save_path, split_individuals=False
-)
-
 # %%
 # Compute metrics
 # ---------------
+# First let's select the subset of data we are interested in.
 
-position = ds_filt.position.sel(time=slice(*time_window), keypoints=use_kpts)
-# Reindex the time dimension to start at 0
-position = position.assign_coords(time=position.time - position.time[0])
+# Keypoints to keep
+use_kpts = [
+    "snout",
+    "left_ear",
+    "right_ear",
+    "centre",
+    "lateral_left",
+    "lateral_right",
+    "tailbase",
+]
 
-# Compute centroid (of all keypooints) and head_center
+# %%
+# Now let's compute the navigation metrics we are interested in.
+
+position = ds_filt.position.sel(keypoints=use_kpts)
+position.name = "position"
+
+# Compute centroid position
 centroid = position.mean(dim="keypoints", skipna=True)
+centroid.name = "centroid_position"
 
-# Compute speed (centroid)
+# Compute centroid speed
 centroid_speed = kin.compute_speed(centroid)
-centroid_speed.name = "Speed (px/s)"
+centroid_speed.name = "centroid_speed"
 
-# Compute head direction vector and heading (angle)
-heading_paramts = {
-    "left_keypoint": "left_ear",
-    "right_keypoint": "right_ear",
-    "camera_view": "top_down",
-}
-forward_vector = kin.compute_forward_vector(position, **heading_paramts)  # type: ignore
-heading = kin.compute_heading(
-    position,
-    **heading_paramts,  # type: ignore
-    reference_vector=(1, 0),
-    in_radians=True,
+# Compute forward vector and heading (angle)
+head_center = position.sel(keypoints=["left_ear", "right_ear", "snout"]).mean(
+    dim="keypoints", skipna=True
 )
-heading.name = "Heading"
+# Forward vector goes from centroid to head_center
+forward_vector = head_center - centroid
+forward_vector.name = "forward_vector"
+# Heading is the phi angle of the forward vector
+heading = cart2pol(forward_vector).sel(space_pol="phi", drop=True)
+heading.name = "heading"
 
-# Drop the "individual" dimension from all metrics
-id_sel = {"individuals": "individual_0"}
-centroid = centroid.sel(**id_sel, drop=True)
-centroid_speed = centroid_speed.sel(**id_sel, drop=True)
-forward_vector = forward_vector.sel(**id_sel, drop=True)
-heading = heading.sel(**id_sel, drop=True)
-max_speed = centroid_speed.max()
+# %%
+# Combine the navigation metrics into a single dataset
+
+
+def extract_id(data: xr.DataArray) -> xr.DataArray:
+    """Drop the 'individuals' dimension from a DataArray."""
+    if "individuals" not in data.dims:
+        return data
+    else:
+        return data.sel(individuals="individual_0", drop=True)
+
+
+position = extract_id(position)
+centroid = extract_id(centroid)
+centroid_speed = extract_id(centroid_speed)
+heading = extract_id(heading)
+
+metrics = xr.merge(
+    [position, centroid, centroid_speed, heading],
+)
+print(metrics)
 
 # %%
 # Set Plotting parameters
 # -----------------------
+# First let's set some plotting parameters.
 
-sns.set_theme(style="ticks", context="talk")
+sns.set_theme(style="ticks", context="poster")
 
-
-def cmap_alpha(cmap_name: str):
-    """Create a colormap with a linear alpha gradient."""
-    cmap = plt.get_cmap(cmap_name)
-    newcolors = cmap(np.linspace(0, 1, 256))
-    alpha_gradient = np.linspace(0, 1, 256) ** 2
-    newcolors[:, -1] = alpha_gradient
-    return ListedColormap(newcolors)
-
-
-# scatterplot parameters
-scatter_params = {
-    "s": 20,
-    "edgecolors": None,
-    "linewidths": 0,
-}
-
+# Set the font to Arial
+plt.rcParams["font.sans-serif"] = "Arial"
+plt.rcParams["font.family"] = "sans-serif"
 
 # %%
-# Plotting functions
+# Let's create an animation
 
-
-def plot_frame(
-    t: int,
-    show_keypoints: bool = True,
-    color: str = "yellow",
-    ax: plt.Axes = None,
-):
-    """Plot a frame with keypoints overlaid."""
-    if ax is None:
-        _, ax = plt.subplots()
-
-    ax.imshow(frames[t], aspect="equal")
-    pos_x = position.isel(time=t, space=0)
-    pos_y = position.isel(time=t, space=1)
-    if show_keypoints:
-        ax.scatter(pos_x, pos_y, color=color, **scatter_params)
-    ax.set_xlim(*maze_xlims)
-    ax.axis("off")
-    return ax
-
-
-def plot_trajectory(
-    t: int,
-    tail_length: int = 30,
-    cmap_name: str = "viridis",
-    ax: plt.Axes = None,
-):
-    """Plot a trajectory for 30 frames up to time t."""
-    if ax is None:
-        _, ax = plt.subplots()
-
-    cmap = cmap_alpha(cmap_name)
-
-    # Plot centroid trajectory overlaid on maze
-    tail_length = min(t, tail_length)
-    show_data = centroid.isel(time=slice(t - tail_length, t))
-    ax.imshow(frames[t], aspect="equal")
-    ax.scatter(
-        show_data.sel(space="x"),
-        show_data.sel(space="y"),
-        c=show_data.time.values,
-        cmap=cmap,
-        **scatter_params,
-    )
-
-    # Limit the plot to the maze
-    ax.set_xlim(*maze_xlims)
-    # Turn off axis
-    ax.axis("off")
-    return ax
-
-
-def plot_heading(
-    t: int,
-    tail_length: int = 30,
-    cmap_name: str = "viridis",
-    ax: plt.Axes = None,
-):
-    """Plot the heading angle as an arrow in polar coordinates."""
-    if ax is None:
-        _, ax = plt.subplots(subplot_kw={"projection": "polar"})
-
-    tail_length = min(t, tail_length)
-    time_slice = slice(t - tail_length, t)
-    phi = heading.isel(time=time_slice)
-    radius = centroid_speed.isel(time=time_slice)
-    ax.quiver(
-        phi.values,
-        np.zeros_like(phi.values),  # start vectors at the origin
-        phi.values,
-        radius,  # scale radius by speed
-        phi.time.values,  # color by time
-        angles="xy",
-        scale=1.5,
-        scale_units="y",
-        cmap=cmap_alpha(cmap_name),
-        width=0.0125,
-    )
-    ax.set_theta_direction(-1)
-    ax.set_theta_offset(0)
-
-    # Control radius (speed) axis
-    # round up max speed to the nearest 200
-    ax.set_ylim(0, centroid_speed.values.max() + 100)
-    ax.set_yticks(np.arange(0, max_speed + 200, 200))
-    ax.set_rlabel_position(90)
-    ax.text(
-        0.47,
-        0.45,
-        centroid_speed.name,
-        transform=ax.transAxes,
-        rotation=90,
-        ha="right",
-        va="top",
-    )
-
-    # Control angle axis
-    xticks = np.linspace(0, 2 * np.pi, 4, endpoint=False)
-    ax.set_xlim(0, 2 * np.pi)
-    ax.set_xticks(xticks)
-    xticks_in_deg = (
-        list(range(0, 181, 90)) + list(range(0, -180, -90))[-1:0:-1]
-    )
-    ax.set_xticklabels([str(t) + "\N{DEGREE SIGN}" for t in xticks_in_deg])
-    return ax
-
-
-# %%
-# Put it all together is a single animation
+# Define the time window for the extracted frames
+time_window = (25, 86)  # in seconds (inclusive)
+# Get the maximum speed for scaling the polar plot
+max_speed = metrics.centroid_speed.sel(time=slice(*time_window)).max().item()
+# Define the xlims of the maze (used only for plotting)
+crop = {"x": (250, 1100)}
 
 # Define the parameters
-tail_length = 90
+tail_length = 90  # in frames
 cmap_name = "viridis"
-max_sec = 18
-max_t = int(max_sec * ds_filt.fps)
+start_t, end_t = (sec * fps for sec in time_window)  # in frames
+transition_secs = [7, 14, 21]  # in seconds
+transition_ts = [start_t + sec * fps for sec in transition_secs]  # in frames
+
+# %%
 
 # Initialize the figure
 fig = plt.figure(figsize=(10, 6))
-fig.subplots_adjust(left=0.01, right=0.95, top=0.95, bottom=0.05, wspace=0.1)
+fig.subplots_adjust(left=0.0, right=0.95, top=0.94, bottom=0.05, wspace=0.1)
 # Create a GridSpec with width ratios
-gs = GridSpec(1, 2, width_ratios=[60, 40])  # 60% and 40% widths
+gs = GridSpec(1, 2, width_ratios=[55, 45])
 # Initialize the axes using the GridSpec
 ax_frame = fig.add_subplot(gs[0, 0])
 ax_polar = fig.add_subplot(gs[0, 1], projection="polar")
 
+fig.subplots_adjust(left=0.0, right=0.95, top=0.94, bottom=0.05, wspace=0.1)
+
 
 def animate(t):
-    color_t = cmap_alpha(cmap_name)(1.0)
     ax_frame.clear()
     ax_polar.clear()
 
-    if t < 4 * 30:
-        plot_frame(t, show_keypoints=False, color=color_t, ax=ax_frame)
+    frame = video[t]
+    t1, t2, t3 = transition_ts
+
+    if t < t1:
+        plot_frame_with_keypoints(
+            t, frame=frame, data=None, crop=crop, cmap="Set1", ax=ax_frame
+        )
         ax_frame.set_title("Mouse moving in a maze")
         ax_polar.axis("off")
-    elif 4 * 30 <= t < 8 * 30:
-        plot_frame(t, show_keypoints=True, color=color_t, ax=ax_frame)
+    elif t1 <= t < t2:
+        plot_frame_with_keypoints(
+            t,
+            frame=frame,
+            data=metrics.position,
+            crop=crop,
+            cmap="Set1",
+            ax=ax_frame,
+        )
         ax_frame.set_title("Tracked body parts")
         ax_polar.axis("off")
-    elif 8 * 30 <= t < 12 * 30:
+    elif t2 <= t < t3:
         plot_trajectory(
-            t, tail_length=tail_length, cmap_name=cmap_name, ax=ax_frame
+            t,
+            data=metrics.centroid_position,
+            frame=frame,
+            tail_length=tail_length,
+            crop=crop,
+            ax=ax_frame,
         )
         ax_frame.set_title("Centroid trajectory")
         ax_polar.axis("off")
     else:
         plot_trajectory(
-            t, tail_length=tail_length, cmap_name=cmap_name, ax=ax_frame
+            t,
+            data=metrics.centroid_position,
+            frame=frame,
+            tail_length=tail_length,
+            crop=crop,
+            ax=ax_frame,
         )
         ax_frame.set_title("Centroid trajectory")
-        plot_heading(
-            t, tail_length=tail_length, cmap_name=cmap_name, ax=ax_polar
+        plot_heading_polar(
+            t,
+            heading=metrics.heading,
+            speed=metrics.centroid_speed,
+            max_speed=max_speed,
+            tail_length=tail_length,
+            scale=1.5,
+            ax=ax_polar,
         )
-        ax_polar.set_title("Heading (" + "\N{DEGREE SIGN}" + ")")
+        ax_polar_title = "Heading (" + "\N{DEGREE SIGN}" + ")"
+        ax_polar.set_title(ax_polar_title, pad=18)
 
 
+# Do a test plot
+animate(2000)
+plt.savefig(save_dir / f"{sub}_animation_test.png")
+
+
+# %%
 # Create the animation
-dt = 1 / ds_filt.fps * 1000  # in milliseconds
+dt = 1 / fps * 1000  # in milliseconds
 ani = FuncAnimation(
-    fig, animate, frames=range(max_t), interval=dt, repeat=False
+    fig, animate, frames=range(start_t, end_t + 1), interval=dt, repeat=False
 )
-
-# To display the animation in a Jupyter notebook, uncomment the following line:
-# from IPython.display import HTML
-# HTML(ani.to_jshtml())
-
-# To save the animation as an MP4 file, uncomment the following lines:
-ani.save(save_dir / f"{sub}_animation.mp4", writer="ffmpeg")
+# Save the animation as an mp4 file
+ani.save(save_dir / f"{sub}_animation.mp4", writer="ffmpeg", dpi=300)
 
 # %%
